@@ -5,41 +5,40 @@ import { updateTodoReducer } from '../redux/todosSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Checkbox({
-    id,
-    text,
-    isCompleted,
-    isToday,
-    hour
-}) {
+export default function Checkbox({ id, isCompleted, isToday }) {
     const dispatch = useDispatch();
     const listTodos = useSelector(state => state.todos.todos);
-
-    const handleCheckbox = () => {
-        try {
-            dispatch(updateTodoReducer({id, isCompleted}));
-            AsyncStorage.setItem('@Todos', JSON.stringify(
-                listTodos.map(todo => {
-                    if (todo.id === id) {
-                        return {...todo, isCompleted: !todo.isCompleted}
-                    }
-                    return todo;
-                }
-            )));
-            console.log('Todo saved correctly');
-        } catch (e) {
-            console.log(e);
-        }
-    }
     
+    const handleCheckbox = async () => {
+    const updatedIsCompleted = !isCompleted;
+
+    try {
+        dispatch(updateTodoReducer({ id, isCompleted: updatedIsCompleted }));
+        const updatedTodos = listTodos.map(todo => {
+        if (todo.id === id) {
+            return { ...todo, isCompleted: updatedIsCompleted };
+        }
+        return todo;
+        });
+        await AsyncStorage.setItem('@Todos', JSON.stringify(updatedTodos));
+
+        console.log('Todo updated correctly');
+    } catch (e) {
+        console.log(e);
+    }
+    };
+
     return isToday ? (
-        <TouchableOpacity onPress={handleCheckbox} style={isCompleted ? styles.checked : styles.unChecked}>
-            {isCompleted && <Entypo name="check" size={16} color="#FAFAFA" />}
+        <TouchableOpacity
+            onPress={handleCheckbox}
+            style={isCompleted ? styles.checked : styles.unChecked}
+        >
+        {isCompleted && <Entypo name="check" size={16} color="#FAFAFA" />}
         </TouchableOpacity>
     ) : (
         <View style={styles.isToday} />
     );
-    }
+}
 
 const styles = StyleSheet.create({
     checked: {
